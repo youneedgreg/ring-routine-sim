@@ -1,8 +1,11 @@
 # ring-routine-sim
 
+[![CI](https://github.com/youneedgreg/ring-routine-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/youneedgreg/ring-routine-sim/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Weeks of realistic, Ring-shaped household events, and a replayer that posts them to your webhook with valid HMAC signatures.
 
-The Ring Developer Playground gives partner apps simulated live-view streams, but it sends no motion, doorbell or sensor events. That makes event-driven apps hard to build and harder to test: you can't wait four weeks for a routine to form. `ring-routine-sim` generates that history in milliseconds, deterministically, with the changes you want to detect built in (slow drift, a weekend away, a missed morning, a sensor going offline).
+The Ring Developer Playground gives partner apps a short-lived token, an API explorer and simulated live-view events, but it doesn't deliver webhooks, and no test account has weeks of history behind it. That makes event-driven apps hard to build and harder to test: you can't wait four weeks for a routine to form. `ring-routine-sim` generates that history in milliseconds, deterministically, with the changes you want to detect built in (slow drift, a weekend away, a missed morning, a sensor going offline).
 
 It was written for [Jirani](https://github.com/youneedgreg/jirani), a caregiving agent that learns an older adult's routine from Ring signals, and is published separately so any Ring partner app can use it.
 
@@ -30,6 +33,12 @@ npx ring-routine-sim replay --file events.ndjson --url http://localhost:8787/rin
 | `presets` | Lists the built-in households |
 | `generate` | `--preset <name>` `--days N` `--seed N` `--start YYYY-MM-DD` `--tz <IANA zone>` `--until <ISO or none>` `--out <file>` (default: NDJSON to stdout) |
 | `replay` | `--file` `--url` `--key` (all required), `--speed N` (0 = back to back; 3600 = one hour per second), `--verbose` |
+
+`generate` writes one event per line:
+
+```json
+{"id":"evt_4bd83441aabe1f6f","requestId":"req_210579e1be4b28d1","deviceId":"ava1.ring.device.sim-bathroom-contact","type":"contact_sensor_opened","at":"2026-09-21T10:52:01.948Z","label":"morning bathroom"}
+```
 
 `replay` exits non-zero if any delivery gets a non-2xx response.
 
