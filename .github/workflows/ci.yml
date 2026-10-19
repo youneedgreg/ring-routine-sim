@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [20, 22]
+        node: [20, 22, 24]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -24,3 +24,10 @@ jobs:
       - run: pnpm build
       - name: CLI smoke test
         run: node dist/cli.js generate --preset demo --days 2 --until none | head -n 3
+      - name: Install the packed tarball and run its bin, as npm users will
+        run: |
+          npm pack --pack-destination "$RUNNER_TEMP"
+          cd "$RUNNER_TEMP" && npm init -y >/dev/null
+          npm install ./ring-routine-sim-*.tgz
+          npx ring-routine-sim presets
+          node --input-type=module -e "import { generate, PRESETS } from 'ring-routine-sim'; console.log(generate(PRESETS.demo.options).length, 'events')"
