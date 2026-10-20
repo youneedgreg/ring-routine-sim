@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { generate, PRESETS, replay, sign, toEnvelope, utcToLocal, DEFAULT_DEVICES } from '../src/index.ts';
+import { generate, PRESETS, replay, sign, toEnvelope, utcToLocal, DEFAULT_DEVICES, SIM_ACCOUNT_ID } from '../src/index.ts';
 
 /** An independent receiver-side check, written the way a Ring partner app verifies webhooks. */
 function verifySignature(raw: string, header: string | null, key: string): boolean {
@@ -94,11 +94,13 @@ describe('Ring compatibility', () => {
     expect(verifySignature(body, sign(body, 'other'), 'k')).toBe(false);
     expect(verifySignature(body + ' ', sign(body, 'k'), 'k')).toBe(false);
     const parsed = JSON.parse(body);
-    expect(parsed.meta).toMatchObject({ version: '1.1', request_id: ev!.requestId });
+    // Ring's documented v1.1 payload: event name in data.type, device in attributes.source, epoch-ms timestamp.
+    expect(parsed.meta).toMatchObject({ version: '1.1', request_id: ev!.requestId, account_id: SIM_ACCOUNT_ID });
     expect(parsed.data).toMatchObject({
-      type: 'events',
+      type: ev!.type,
       id: ev!.id,
-      attributes: { event_type: ev!.type, device_id: ev!.deviceId, timestamp: ev!.at },
+      attributes: { source: ev!.deviceId, source_type: 'devices', timestamp: Date.parse(ev!.at) },
+      relationships: { devices: { links: { self: `/v1/devices/${ev!.deviceId}` } } },
     });
     expect(body).not.toContain('label');
   });
