@@ -37,7 +37,7 @@ npx ring-routine-sim replay --file events.ndjson --url http://localhost:8787/rin
 `generate` writes one event per line:
 
 ```json
-{"id":"evt_4bd83441aabe1f6f","requestId":"req_210579e1be4b28d1","deviceId":"ava1.ring.device.sim-bathroom-contact","type":"contact_sensor_opened","at":"2026-09-21T10:52:01.948Z","label":"morning bathroom"}
+{"id":"evt_4bd83441aabe1f6f","requestId":"req_210579e1be4b28d1","deviceId":"ava1.ring.device.sim-bathroom-contact","type":"contact_sensor_faulted","at":"2026-09-21T10:52:01.948Z","label":"morning bathroom"}
 ```
 
 `replay` exits non-zero if any delivery gets a non-2xx response.
@@ -82,7 +82,7 @@ Five simulated devices; rename any of them with `devices: { fridge: 'your-device
 
 | Key | Default id | Emits |
 | --- | --- | --- |
-| `frontDoor` | `ava1.ring.device.sim-front-door-contact` | `contact_sensor_opened` / `contact_sensor_closed` |
+| `frontDoor` | `ava1.ring.device.sim-front-door-contact` | `contact_sensor_faulted` (opened) / `contact_sensor_cleared` (closed) |
 | `fridge` | `ava1.ring.device.sim-fridge-contact` | same |
 | `bathroom` | `ava1.ring.device.sim-bathroom-contact` | same |
 | `medicine` | `ava1.ring.device.sim-medicine-contact` | same |
@@ -105,22 +105,32 @@ Any sensor can also emit `device_offline` / `device_online` through the `offline
 
 ## What gets posted
 
-Each event becomes one POST in the Ring webhook v1.1 envelope shape:
+Each event becomes one POST in [Ring's webhook v1.1 payload](https://developer.amazon.com/docs/ring/api-documentation.html#sensor-webhook-payload): the event name in `data.type`, the device in `data.attributes.source`, and `timestamp` in Unix epoch milliseconds.
 
 ```json
 {
-  "meta": { "version": "1.1", "request_id": "req_c2ed63f6f05290e8", "time": "2026-09-21T10:52:01.948Z" },
+  "meta": {
+    "version": "1.1",
+    "time": "2026-09-21T10:52:01.948Z",
+    "request_id": "req_c2ed63f6f05290e8",
+    "account_id": "ava1.ring.account.SIMULATED"
+  },
   "data": {
-    "type": "events",
     "id": "evt_5ee9c8a92751af03",
+    "type": "contact_sensor_faulted",
     "attributes": {
-      "event_type": "contact_sensor_opened",
-      "device_id": "ava1.ring.device.sim-bathroom-contact",
-      "timestamp": "2026-09-21T10:52:01.948Z"
+      "source": "ava1.ring.device.sim-bathroom-contact",
+      "source_type": "devices",
+      "timestamp": 1789987921948
+    },
+    "relationships": {
+      "devices": { "links": { "self": "/v1/devices/ava1.ring.device.sim-bathroom-contact" } }
     }
   }
 }
 ```
+
+`meta.account_id` is a placeholder (`SIM_ACCOUNT_ID`); pass your own as the second argument to `toEnvelope(event, accountId)`.
 
 with `X-Signature: sha256=<hex HMAC-SHA256 of the raw body>`. Every event has a unique `request_id`, so you can test idempotent handling by replaying a file twice. The `label` field in the NDJSON ("breakfast", "night bathroom trip") is for debugging and is never sent.
 
@@ -139,7 +149,7 @@ function verify(rawBody: string, header: string | undefined, key: string) {
 
 ## Limits, stated plainly
 
-- **Contact-sensor event names are an assumption.** The envelope follows Ring's public webhook v1.1 structure, but `contact_sensor_opened` / `contact_sensor_closed` are this package's names until Ring documents sensor events for partner webhooks. If yours differ, map `event_type` in your handler or change `toEnvelope`.
+- **Sensor events are Early Access at Ring.** Contact sensors use the names in Ring's [Sensors docs](https://developer.amazon.com/docs/ring/api-documentation.html#sensor-events), `contact_sensor_faulted` (the contact opens) and `contact_sensor_cleared` (it closes). Ring says sensor endpoints and event types can change before general availability; if they do, change `toEnvelope` or map `data.type` in your handler.
 - **It models one person living alone**, with a plausible but invented routine. It is test data, not a model of any real household or condition.
 - **It doesn't emulate the Ring REST API.** For that, see [ring-sandbox](https://pypi.org/project/ring-sandbox/), a Python Ring API emulator. The two fit together: ring-sandbox for API calls, this package for long event histories.
 
