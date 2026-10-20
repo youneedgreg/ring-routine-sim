@@ -15,7 +15,7 @@
   "exports": {
     ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }
   },
-  "bin": { "ring-routine-sim": "./dist/cli.js" },
+  "bin": { "ring-routine-sim": "dist/cli.js" },
   "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
   "sideEffects": false,
   "scripts": {
