@@ -113,8 +113,8 @@ export function generate(opts: GenerateOptions): SimEvent[] {
   const drafts: Draft[] = [];
 
   const contact = (device: DeviceKey, dayOffset: number, minute: number, label: string, holdSec: [number, number] = [3, 40]) => {
-    drafts.push({ device, type: 'contact_sensor_opened', minute, dayOffset, label });
-    drafts.push({ device, type: 'contact_sensor_closed', minute: minute + rng.between(...holdSec) / 60, dayOffset, label });
+    drafts.push({ device, type: 'contact_sensor_faulted', minute, dayOffset, label });
+    drafts.push({ device, type: 'contact_sensor_cleared', minute: minute + rng.between(...holdSec) / 60, dayOffset, label });
   };
   const doorbell = (dayOffset: number, minute: number, type: 'motion_detected' | 'button_press', label: string, subType?: string) => {
     const d: Draft = { device: 'doorbell', type, minute, dayOffset, label };
@@ -233,8 +233,8 @@ function applyAway(drafts: Draft[], modifiers: Modifier[], rng: Rng) {
       if (t > from - 2 && t < to + 2 && !streetNoise) drafts.splice(i, 1);
     }
     const push = (dayOffset: number, minute: number, label: string) => {
-      drafts.push({ device: 'frontDoor', type: 'contact_sensor_opened', minute, dayOffset, label });
-      drafts.push({ device: 'frontDoor', type: 'contact_sensor_closed', minute: minute + rng.between(5, 20) / 60, dayOffset, label });
+      drafts.push({ device: 'frontDoor', type: 'contact_sensor_faulted', minute, dayOffset, label });
+      drafts.push({ device: 'frontDoor', type: 'contact_sensor_cleared', minute: minute + rng.between(5, 20) / 60, dayOffset, label });
       drafts.push({ device: 'doorbell', type: 'motion_detected', subType: 'human', minute: minute + 0.3, dayOffset, label });
     };
     push(m.startDay, m.leaveAt, 'leaves for a trip');

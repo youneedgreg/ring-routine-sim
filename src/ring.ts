@@ -7,7 +7,9 @@ import { createHmac } from 'node:crypto';
  * The envelope follows the Ring webhook v1.1 payload in the Ring Partner API docs
  * (https://developer.amazon.com/docs/ring/api-documentation.html#sensor-webhook-payload):
  * the event name in `data.type`, the device in `data.attributes.source`, and
- * `timestamp` in Unix epoch milliseconds.
+ * `timestamp` in Unix epoch milliseconds. Contact sensors use Ring's names:
+ * `contact_sensor_faulted` when the contact opens, `contact_sensor_cleared` when
+ * it closes. Sensor events are Early Access in Ring's docs and may change.
  */
 
 /** Placeholder for `meta.account_id`; Ring sends the linked user's account ID. */
@@ -18,8 +20,8 @@ export type SimEventType =
   | 'button_press'
   | 'device_online'
   | 'device_offline'
-  | 'contact_sensor_opened'
-  | 'contact_sensor_closed';
+  | 'contact_sensor_faulted'
+  | 'contact_sensor_cleared';
 
 export interface SimEvent {
   id: string;

@@ -8,6 +8,7 @@ First release.
 - Modifiers: `drift` (move a routine parameter across days), `away`, `missedMorning`, `offline`.
 - Presets: `normal`, `drift`, `away`, `missed-morning`, `offline`, `demo`.
 - `toEnvelope()` and `sign()`: Ring's documented webhook v1.1 payload (event name in `data.type`, device in `attributes.source`, epoch-millisecond `timestamp`, `meta.account_id`), signed with HMAC-SHA256 (`X-Signature: sha256=<hex>`). Every event has a unique `request_id`.
+- Contact sensors emit Ring's event names, `contact_sensor_faulted` (opened) and `contact_sensor_cleared` (closed).
 - `replay()`: posts events to a webhook, back to back or at a chosen speed, and reports the status codes.
 - CLI: `ring-routine-sim presets | generate | replay`.
 - Zero runtime dependencies; Node 20+; ESM with type declarations.

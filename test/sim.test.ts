@@ -29,7 +29,7 @@ describe('generate', () => {
     const events = generate({ start: '2026-09-21', days: 7, seed: 3, timeZone: TZ });
     const times = events.map((e) => Date.parse(e.at));
     expect([...times].sort((x, y) => x - y)).toEqual(times);
-    const breakfasts = events.filter((e) => e.label === 'breakfast' && e.type === 'contact_sensor_opened');
+    const breakfasts = events.filter((e) => e.label === 'breakfast' && e.type === 'contact_sensor_faulted');
     expect(breakfasts).toHaveLength(7);
     for (const b of breakfasts) {
       const m = localMinutes(b.at);
@@ -45,7 +45,7 @@ describe('generate', () => {
       for (let i = 0; i < 7; i++) {
         const day = new Date(Date.UTC(2026, 8, 21 + fromDay + i)).toISOString().slice(0, 10);
         n += events.filter(
-          (e) => e.label === 'night bathroom trip' && e.type === 'contact_sensor_opened' && localDay(e.at) === day,
+          (e) => e.label === 'night bathroom trip' && e.type === 'contact_sensor_faulted' && localDay(e.at) === day,
         ).length;
       }
       return n / 7;
